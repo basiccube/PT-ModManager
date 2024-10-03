@@ -180,6 +180,11 @@
   ],
   "IncludedFiles": [
     {"resourceType":"GMIncludedFile","resourceVersion":"1.0","name":"xdelta.exe","CopyToMask":-1,"filePath":"datafiles",},
+    {"resourceType":"GMIncludedFile","resourceVersion":"1.0","name":"libxprocess_LICENSE.txt","CopyToMask":-1,"filePath":"datafiles/licenses",},
+    {"resourceType":"GMIncludedFile","resourceVersion":"1.0","name":"EmuUI_LICENSE.txt","CopyToMask":-1,"filePath":"datafiles/licenses",},
+    {"resourceType":"GMIncludedFile","resourceVersion":"1.0","name":"Timers_LICENSE.txt","CopyToMask":-1,"filePath":"datafiles/licenses",},
+    {"resourceType":"GMIncludedFile","resourceVersion":"1.0","name":"libfilesystem_LICENSE.txt","CopyToMask":-1,"filePath":"datafiles/licenses",},
+    {"resourceType":"GMIncludedFile","resourceVersion":"1.0","name":"Scribble_LICENSE.txt","CopyToMask":-1,"filePath":"datafiles/licenses",},
   ],
   "MetaData": {
     "IDEVersion": "2022.0.2.51",

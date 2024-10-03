@@ -13,3 +13,5 @@ Just open it in GameMaker-LTS and the rest you can figure out yourself.
 * Emu UI - DragoniteSpam
 * Scribble - JujuAdams
 * Timer code - nommiin
+
+See the datafiles/licenses directory for the licenses of these projects.

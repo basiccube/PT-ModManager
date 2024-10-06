@@ -1,6 +1,6 @@
 function backup_file(_file)
 {
-	file_copy(global.gamedir + _file, "backup/" + _file)
+	file_copy(global.settings.gameDir + _file, "backup/" + _file)
 }
 
 function backup_game_files()
@@ -8,12 +8,12 @@ function backup_game_files()
 	if (directory_exists(working_directory + "fullbackup"))
 		directory_destroy(working_directory + "fullbackup")
 	
-	return directory_copy(global.gamedir, working_directory + "fullbackup/");
+	return directory_copy(global.settings.gameDir, working_directory + "fullbackup/");
 }
 
 function restore_file(_file)
 {
-	file_copy("backup/" + _file, global.gamedir + _file)
+	file_copy("backup/" + _file, global.settings.gameDir + _file)
 }
 
 function restore_game_files()
@@ -21,7 +21,8 @@ function restore_game_files()
 	if (!directory_exists(working_directory + "fullbackup"))
 		exit;
 		
-	directory_destroy(global.gamedir)
+	print("Deleting previous game directory...")
+	directory_destroy(global.settings.gameDir)
 		
 	// Apparently something as simple as directory_copy doesn't work here so this has to be done instead
 	
@@ -38,16 +39,15 @@ function restore_game_files()
 	
 	directory_contents_close()
 	
-	global.currentmod = ""
-	ini_open("config.ini")
-	ini_write_string("ModManager", "CurrentMod", "")
-	ini_close()
+	global.settings.currentMod = ""
+	save_settings()
 	
-	directory_create(global.gamedir)
+	print("Restoring game backup...")
+	directory_create(global.settings.gameDir)
 	
 	for (var i = 0; i < array_length(_arr); i++)
 	{
 		var _file = _arr[i]
-		file_copy(working_directory + "fullbackup/" + _file, global.gamedir + _file)
+		file_copy(working_directory + "fullbackup/" + _file, global.settings.gameDir + _file)
 	}
 }

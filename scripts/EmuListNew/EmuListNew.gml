@@ -235,7 +235,7 @@ function EmuListNew(x, y, width, element_height, content_slots, callback) : EmuC
             scribble(self.text_vacant)
                 .wrap(self.width, self.height)
                 .align(fa_left, fa_center)
-                .draw(tx - x1, ty - y2);
+                .draw(tx - x1, y2);
         } else {
             for (var i = 0; i < min(n, self.slots); i++) {
                 var current_index = i + self.index;

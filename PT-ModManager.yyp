@@ -19,7 +19,7 @@
     {"id":{"name":"obj_windowHandler","path":"objects/obj_windowHandler/obj_windowHandler.yy",},"order":0,},
     {"id":{"name":"spr_emu_mask_bar_h","path":"sprites/spr_emu_mask_bar_h/spr_emu_mask_bar_h.yy",},"order":11,},
     {"id":{"name":"scribble_anim_cycle","path":"scripts/scribble_anim_cycle/scribble_anim_cycle.yy",},"order":1,},
-    {"id":{"name":"modFunctions","path":"scripts/modFunctions/modFunctions.yy",},"order":1,},
+    {"id":{"name":"modandfileFunctions","path":"scripts/modandfileFunctions/modandfileFunctions.yy",},"order":1,},
     {"id":{"name":"libxprocess","path":"extensions/libxprocess/libxprocess.yy",},"order":1,},
     {"id":{"name":"scribble_font_add","path":"scripts/scribble_font_add/scribble_font_add.yy",},"order":0,},
     {"id":{"name":"scribble_typists_add_event","path":"scripts/scribble_typists_add_event/scribble_typists_add_event.yy",},"order":9,},

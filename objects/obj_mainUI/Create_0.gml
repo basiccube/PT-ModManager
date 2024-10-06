@@ -5,13 +5,14 @@
 
 mod_arr = get_mods()
 
-ini_open("config.ini")
-// temporary
-global.gamedir = ini_read_string("ModManager", "GameDir", "C:/Program Files (x86)/Steam/steamapps/common/Pizza Tower/")
 global.modselected = ""
 global.patchlog = ""
-global.currentmod = ini_read_string("ModManager", "CurrentMod", "")
-ini_close()
+
+var _log = file_text_open_append(working_directory + "modmanager.log")
+file_text_write_string(_log, "\n=======================================================================\n")
+file_text_write_string(_log, "MOD MANAGER STARTED AT: " + date_datetime_string(date_current_datetime()) + "\n")
+file_text_write_string(_log, "=======================================================================\n")
+file_text_close(_log)
 
 container = new EmuCore(8, 8, room_width, room_height)
 
@@ -19,7 +20,7 @@ launchButton = new EmuButton(buttonX, EMU_AUTO, 160, 48, "Launch!", function()
 {
 	if (global.modselected == "")
 	{
-		if (global.currentmod != "")
+		if (global.settings.currentMod != "")
 		{
 			launch_game()
 			exit;
@@ -29,11 +30,7 @@ launchButton = new EmuButton(buttonX, EMU_AUTO, 160, 48, "Launch!", function()
 		{
 			launch_game()
 			self.root.Close()
-		},
-		function()
-		{
-			self.root.Close()
-		})
+		}, emu_dialog_close_auto)
 		exit;
 	}
 	
@@ -43,145 +40,7 @@ launchButton = new EmuButton(buttonX, EMU_AUTO, 160, 48, "Launch!", function()
 		exit;
 	}
 	
-	// Get mod files
-	var _patch_arr = get_mod_files("xdelta")
-	var _lang_arr = get_mod_files("txt", true)
-	var _bank_arr = get_mod_files("bank", true)
-	var _dll_arr = get_mod_files("dll", true)
-	var _video_arr = get_mod_files("mp4", true)
-	
-	// Files to patch
-	var _filestopatch = ["data.win", "PizzaTower.exe", "sound/Desktop/Master.bank", "sound/Desktop/Master.strings.bank", "sound/Desktop/Music.bank", "sound/Desktop/sfx.bank"]
-	
-	if (!directory_exists(working_directory + "temp"))
-		directory_create(working_directory + "temp")
-	
-	var _failed = false
-	for (var i = 0; i < array_length(_patch_arr); i++)
-	{
-		if (_failed)
-			break
-		
-		var _patch = _patch_arr[i]
-		
-		for (var j = 0; j < array_length(_filestopatch); j++)
-		{
-			var _file = global.gamedir + _filestopatch[j]
-			var _newfile = working_directory + "temp/" + string_replace(_file, global.gamedir, "")
-			
-			show_debug_message("Source file: " + _file)
-			show_debug_message("Patch file: " + _patch)
-			show_debug_message("New file: " + _newfile)
-			
-			var _patchresult = patch_file(_file, _patch, _newfile)
-			if (_patchresult == xdeltaresult.success)
-			{
-				array_delete(_filestopatch, j, 1)
-				break
-			}
-			else
-			{
-				_failed = true
-				var _str = ""
-				switch _patchresult
-				{
-					case xdeltaresult.notfound:
-						var _file_arr = [_file, _patch, _newfile]
-						var _filestr = ""
-				
-						for (var i = 0; i < array_length(_file_arr); i++)
-						{
-							if (string_pos(_file_arr[i], global.patchlog) != 0)
-								_filestr = _file_arr[i]
-						}
-				
-						_str = "Cannot find the following file: " + _filestr
-						break
-					case xdeltaresult.checksum:
-						_str = "Checksum mismatch. Please make sure that the patch is compatible with the version of the game you are using."
-						break
-					case xdeltaresult.accessdenied:
-						_str = "Access is denied. Make sure you have the permissions required to be able to access the game directory or try running the mod manager as an administrator."
-						break
-					case xdeltaresult.invalidpatch:
-						_str = "Invalid patch. Please make sure that the patch file is a valid patch."
-						break
-					case xdeltaresult.fileexists:
-						_str = "Patched file already exists.\nA previous patching process might have broken in some way, please check the temp folder if it exists and delete it."
-						break
-				}
-				create_messagedialog("Patch Failed", "Failed to patch due to the following reason:\n" + _str + "\nCheck xdelta.log for any more technical details.")
-			}
-			
-			if (_failed)
-				break
-		}
-	}
-	
-	if (!_failed)
-	{
-		// Copy patched files
-		var _temp_arr = get_folder_array(working_directory + "temp")
-		var _copyfailed = false
-		
-		for (var i = 0; i < array_length(_temp_arr); i++)
-		{
-			var _tempfile = _temp_arr[i]
-			var _copyresult = file_replace(working_directory + "temp/" + _tempfile, global.gamedir + _tempfile)
-			if (!_copyresult)
-				_copyfailed = true
-		}
-		
-		// Copy language files
-		for (var i = 0; i < array_length(_lang_arr); i++)
-		{
-			var _langfile = _lang_arr[i]
-			var _copyresult = file_replace(MOD_DIR + _langfile, global.gamedir + "lang/" + filename_name(_langfile))
-			if (!_copyresult)
-				_copyfailed = true
-		}
-		
-		// Copy FMOD bank files
-		for (var i = 0; i < array_length(_bank_arr); i++)
-		{
-			var _bankfile = _bank_arr[i]
-			var _copyresult = file_replace(MOD_DIR + _bankfile, global.gamedir + "sound/Desktop/" + filename_name(_bankfile))
-			if (!_copyresult)
-				_copyfailed = true
-		}
-		
-		// Copy DLLs
-		for (var i = 0; i < array_length(_dll_arr); i++)
-		{
-			var _dllfile = _dll_arr[i]
-			var _copyresult = file_replace(MOD_DIR + _dllfile, global.gamedir + filename_name(_dllfile))
-			if (!_copyresult)
-				_copyfailed = true
-		}
-		
-		// Copy MP4 videos
-		for (var i = 0; i < array_length(_video_arr); i++)
-		{
-			var _videofile = _video_arr[i]
-			var _copyresult = file_replace(MOD_DIR + _videofile, global.gamedir + filename_name(_videofile))
-			if (!_copyresult)
-				_copyfailed = true
-		}
-		
-		if (_copyfailed)
-			create_messagedialog("Failed To Install", "Failed to copy mod files.")
-		else
-		{
-			launch_game()
-			global.currentmod = global.modselected
-			
-			ini_open("config.ini")
-			ini_write_string("ModManager", "CurrentMod", global.currentmod)
-			ini_close()
-		}
-	}
-	
-	directory_destroy(working_directory + "temp")
+	patch_selected_mod(true)
 })
 restoreButton = new EmuButton(buttonX, EMU_AUTO, 160, 48, "Restore backup", function()
 {
@@ -201,15 +60,11 @@ restoreButton = new EmuButton(buttonX, EMU_AUTO, 160, 48, "Restore backup", func
 		}, 2)
 		
 		self.root.Close()
-	},
-	function()
-	{
-		self.root.Close()
-	})
+	}, emu_dialog_close_auto)
 })
 completebackupButton = new EmuButton(buttonX, EMU_AUTO, 160, 48, "Full backup", function()
 {
-	if (global.currentmod != "")
+	if (global.settings.currentMod != "")
 	{
 		create_messagedialog("Cannot Make Backup", "You cannot make a backup while a mod is installed. Restore your backup and then try again.")
 		exit;
@@ -217,12 +72,7 @@ completebackupButton = new EmuButton(buttonX, EMU_AUTO, 160, 48, "Full backup", 
 	
 	var _text = "Do you want to make a complete game backup?"
 	if (directory_exists(working_directory + "fullbackup"))
-	{
-		//if (global.currentmod != "")
-		//	_text = "You already have a complete backup.\nDo you want to replace your existing backup?\n\nNOTE:\nA mod is currently installed.\nIf the backup is a clean copy of the game then it will replace it with your currently modded one!"
-		//else
 		_text = "You already have a complete backup.\nDo you want to replace your existing backup?"
-	}
 	
 	create_questiondialog("Make Complete Backup", _text, function()
 	{
@@ -237,11 +87,7 @@ completebackupButton = new EmuButton(buttonX, EMU_AUTO, 160, 48, "Full backup", 
 		}, 2, _backupresult)
 		
 		self.root.Close()
-	},
-	function()
-	{
-		self.root.Close()
-	})
+	}, emu_dialog_close_auto)
 })
 optionsButton = new EmuButton(buttonX, optionsButtonY, 160, 48, "Settings", function()
 {
@@ -255,7 +101,7 @@ modList = new EmuListNew(8, 16, buttonX - 20, 50, 10, function()
 	else
 	{
 		global.modselected = _sel
-		show_debug_message("Selected: " + _sel)
+		print("Selected: ", _sel)
 	}
 })
 modList.AddEntries(mod_arr)
@@ -267,3 +113,49 @@ container.AddContent(completebackupButton)
 container.AddContent(optionsButton)
 container.AddContent(modList)
 container.AddContent(currentmodLabel)
+
+firstrunDialog = -4
+firstrunDirectory = ""
+if (global.settings.firstRun)
+{	
+	print("First launch - open welcome dialog")
+	firstrunDialog = new EmuDialog(720, 480, "Welcome to PT-ModManager!")
+	firstrunLabel = new EmuText(16, 16, 704, 96, "First you need to specify where your game directory is.\nPress the Browse button to do that.")
+	firstrunDirLabel = new EmuText(16, 80, 680, 384, "(no game directory specified)")
+	firstrunOKButton = new EmuButton((firstrunDialog.width / 2) - (160 / 2), firstrunDialog.height - 48 - (48 / 2), 160, 48, "OK", function()
+	{
+		if (!file_exists(global.settings.gameDir + "data.win"))
+		{
+			create_questiondialog("No Game Found", "There doesn't appear to be a valid game here that\ncan be used with PT-ModManager.\nAre you sure you still want to continue?", function()
+			{
+				self.root.Close()
+				obj_mainUI.firstrunDialog.Close()
+				global.settings.firstRun = false
+				print("Specified game directory: ", global.settings.gameDir)
+				save_settings()
+			}, emu_dialog_close_auto)
+			exit;
+		}
+		
+		self.root.Close()
+		global.settings.firstRun = false
+		print("Specified game directory: ", global.settings.gameDir)
+		save_settings()
+	})
+	firstrunBrowseButton = new EmuButton((firstrunDialog.width / 2) - (160 / 2), firstrunDialog.height - 104 - (48 / 2), 160, 48, "Browse", function()
+	{
+		var _dialogresult = get_open_filename_ext("Pizza Tower executable|*.exe", "", working_directory, "Locate game executable")
+		if (_dialogresult != "")
+			global.settings.gameDir = filename_dir(_dialogresult) + "\\"
+	})
+	
+	firstrunLabel.align.v = fa_top
+	firstrunDirLabel.align.v = fa_top
+	firstrunOKButton.interactive = false
+	firstrunDialog.AddContent(firstrunLabel)
+	firstrunDialog.AddContent(firstrunDirLabel)
+	firstrunDialog.AddContent(firstrunOKButton)
+	firstrunDialog.AddContent(firstrunBrowseButton)
+	firstrunDialog.close_button = false
+	firstrunDialog.CenterInWindow()
+}

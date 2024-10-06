@@ -66,10 +66,61 @@ function file_replace(_fname, _newname)
 {
 	if (file_exists(_newname))
 	{
-		show_debug_message("Deleting file " + _newname)
+		print("Deleting file ", _newname)
 		file_delete(_newname)
 	}
 			
-	show_debug_message("Copying file " + _fname)
+	print("Copying file ", _fname)
 	return file_copy(_fname, _newname);
+}
+
+function print()
+{
+	var _string = ""
+	for (var i = 0; i < argument_count; i++)
+		_string += string(argument[i])
+		
+	var _log = file_text_open_append(working_directory + "modmanager.log")
+	file_text_write_string(_log, _string + "\n")
+	file_text_close(_log)
+	
+	show_debug_message(_string)
+	exit;
+}
+
+function get_settings()
+{
+	if (file_exists(working_directory + "config.json"))
+	{
+		var _settingsfile = file_text_open_read(working_directory + "config.json")
+		var _settingsjson = json_parse(file_text_read_all(_settingsfile))
+		file_text_close(_settingsfile)
+		
+		return _settingsjson;
+	}
+	
+	return
+	{
+		windowW : window_get_width(),
+		windowH : window_get_height(),
+		windowX : (display_get_width() / 2) - (window_get_width() / 2),
+		windowY : (display_get_height() / 2) - (window_get_height() / 2),
+		currentMod : "",
+		gameDir : "",
+		firstRun : true,
+	};
+}
+
+function save_settings()
+{
+	print("Saving settings")
+	global.settings.windowX = window_get_x()
+	global.settings.windowY = window_get_y()
+	global.settings.windowW = window_get_width()
+	global.settings.windowH = window_get_height()
+
+	var _jsonstr = json_stringify(global.settings)
+	var _jsonfile = file_text_open_write(working_directory + "config.json")
+	file_text_write_string(_jsonfile, _jsonstr)
+	file_text_close(_jsonfile)
 }
